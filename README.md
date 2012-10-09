@@ -1,13 +1,17 @@
 # syobocal
 
-A Clojure library designed to ... well, that part is up to you.
+Syoboi Calendar Api binding for clojure component.
 
 ## Usage
 
-FIXME
+lein run 
+
+OR you could control theses api also in repl.
+
+lein repl
 
 ## License
 
-Copyright © 2012 FIXME
+Copyright © 2012 mattak
 
 Distributed under the Eclipse Public License, the same as Clojure.
