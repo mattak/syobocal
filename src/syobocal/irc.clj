@@ -61,14 +61,13 @@
     "create irc socket
     usage : (connect {:name 'servername' :port 6667})
     "
-    [server *irc-message-handler*]
+    [server *irc-message-handler* ns]
     (let [
         socket (Socket. (:name server) (:port server))
         in (BufferedReader. (InputStreamReader. (.getInputStream socket) (:encode IRC)))
         out (PrintWriter. (OutputStreamWriter. (.getOutputStream socket) (:encode IRC)))
         conn (ref {:in in :out out})]
-
-        (doto (Thread. #(conn-handler conn *irc-message-handler*)) (.start))
+        (doto (Thread. #(conn-handler conn *irc-message-handler* ns)) (.start))
         conn))
 
 (defn write
@@ -112,11 +111,14 @@
 
 (defn notice
     "notice to irc channel"
-    [conn chan msg]
-    (do
-    (println (str "msg " msg))
-    (write conn (str "NOTICE " chan " " msg)))
-    )
+    ([conn chan msg]
+        (do
+        (println (str "notice " msg))
+        (write conn (str "NOTICE " chan " :" msg))))
+    ([chan msg]
+        (do
+            (println (str "notice " msg))
+        )))
 
 ;;
 ;; event handler
@@ -125,28 +127,30 @@
 (defn message-parse
     "get message and return [who channel message]"
     [msg]
-    (let [parsed (re-find #"^:([^!]+)!.*PRIVMSG\s+(\S+)\s+:(\S+)" msg)]
+    (let [parsed (re-find #"^:([^!]+)!.*PRIVMSG\s+(\S+)\s+:(.+)$" msg)]
         (if parsed (rest parsed) parsed)))
 
 (defn conn-handler
     "handle socket connection.
     it controles input message handling.
     irc-message-handler is dynamic and exportable with another package"
-    [conn handler]
+    [conn handler ns]
     (while (nil? (:exit @conn))
-        (let [msg (.readLine (:in @conn))
-              whochanmsg (message-parse msg)]
-            (println msg)
-            (cond
-                (re-find #"^ERROR :Closing Link:" msg) 
-                   (dosync (alter conn merge {:exit true}))
-                (re-find #"^PING" msg)
-                    (write conn (str "PONG " (re-find #":.*" msg)))
-                whochanmsg
-                    (let [who (first whochanmsg)
-                          chan (second whochanmsg)
-                          msg (last whochanmsg)]
-                          (handler conn who chan msg))
-               :else false 
-                ))))
+        (binding [*ns* ns]
+            (let [msg (.readLine (:in @conn))
+                  whochanmsg (message-parse msg)]
+                (println msg)
+                (cond
+                    (re-find #"^ERROR :Closing Link:" msg) 
+                       (dosync (alter conn merge {:exit true}))
+                    (re-find #"^PING" msg)
+                        (write conn (str "PONG " (re-find #":.*" msg)))
+                    whochanmsg
+                        (let [who (first whochanmsg)
+                              chan (second whochanmsg)
+                              msg (last whochanmsg)]
+                              (handler conn who chan msg))
+                   :else false 
+                    ))))
+                    )
  
