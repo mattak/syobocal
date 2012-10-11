@@ -11,7 +11,7 @@
     "anime information handle"
     []
     (let [dat (rss/rss-anime)]
-        (rss/tvform-format dat)))
+        (rss/tvform-put dat)))
 
 (defn irc-handler
     "
@@ -33,10 +33,6 @@
                 (catch Exception e (println e)))
         :else true
         ))
-
-;(defn irc-notice
-;    [chan msg]
-;    (irc/notice *irc-connect* chan msg))
 
 (defn start
     "start to join irc.

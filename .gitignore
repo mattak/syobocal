@@ -2,6 +2,8 @@
 /lib
 /classes
 /checkouts
+/docs
+
 pom.xml
 *.jar
 *.class
@@ -10,4 +12,7 @@ pom.xml
 .lein-plugins
 *.tmp
 *~
+
+local.clj
 config.clj
+

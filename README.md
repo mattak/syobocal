@@ -10,6 +10,10 @@ OR you could control theses api also in repl.
 
 lein repl
 
+## Document
+
+lein marg
+
 ## License
 
 Copyright © 2012 mattak
