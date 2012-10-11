@@ -1,11 +1,12 @@
 (ns syobocal.core
-    (:use [syobocal.rss :as rss]
+    (:require
+        [syobocal.rss :as rss]
         [syobocal.irc :as irc]))
 
 (def CONFIG
     (load-string (slurp "config.clj")))
 
-(def ^:dynamic *irc-connect* false)
+(def ^:dynamic *irc-connect* (ref "no binding"))
 
 (defn anime
     "anime information handle"
@@ -34,12 +35,33 @@
         :else true
         ))
 
+;; irc binding
+;; -----------
+
+(defn join 
+    "join irc channel"
+    [chan]
+    (irc/join @*irc-connect* chan))
+
+(defn part [chan]
+    "part irc channel"
+    (irc/part @*irc-connect* chan))
+
+(defn notice [chan msg]
+    "notice message"
+    (irc/notice @*irc-connect* chan msg))
+
+(defn privmsg [chan msg]
+    "privmsg"
+    (irc/privmsg @*irc-connect* chan msg))
+
 (defn start
     "start to join irc.
     and reply syoboi calendar result."
     []
     (binding [syobocal.irc/*irc-message-handler* irc-handler]
     (let     [irc-connect (irc/connect (CONFIG :server) irc-handler *ns*)]
+        (dosync (ref-set *irc-connect* irc-connect))
         (irc/login irc-connect (CONFIG :user))
         (map #(irc/join irc-connect %) (CONFIG :channel))
         )))
