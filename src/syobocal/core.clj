@@ -3,10 +3,7 @@
         [syobocal.irc :as irc]))
 
 (def CONFIG
-    {:server {:name "irc.livedoor.ne.jp" :port 6667}
-    :user    {:name "animebot" :nick "animebot"}
-    :channel ["#testes"]
-    })
+    (load-string (slurp "config.clj")))
 
 (def ^:dynamic *irc-connect* false)
 
